@@ -1,11 +1,22 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>YouTube Auto Pause/Play</title>
-  </head>
-  <body>
-    <h3>Control YouTube Video</h3>
-    <button id="toggle">Pause/Play</button>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Pause/Play</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <h2>YouTube Auto Pause</h2>
+        <div class="toggle-container">
+            <label class="switch">
+                <input type="checkbox" id="toggleFeature">
+                <span class="slider round"></span>
+            </label>
+            <p id="status">OFF</p>
+        </div>
+    </div>
     <script src="popup.js"></script>
-  </body>
+</body>
 </html>
