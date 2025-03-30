@@ -1,55 +1,61 @@
-let previousTabId = null;
+let featureEnabled = false;
+let previousTabId = null; // ✅ Declare previousTabId
+
+// Load state from storage
+chrome.storage.sync.get("featureEnabled", (data) => {
+    featureEnabled = data.featureEnabled || false;
+});
+
+chrome.runtime.onMessage.addListener((message) => {
+    if (message.action === "enable") {
+        featureEnabled = true;
+        chrome.storage.sync.set({ featureEnabled: true });
+    } else if (message.action === "disable") {
+        featureEnabled = false;
+        chrome.storage.sync.set({ featureEnabled: false });
+    }
+});
 
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
-  const currentTabId = activeInfo.tabId;
+    if (!featureEnabled) return; // Exit if feature is disabled
 
-  // Pause video on the previous tab if it's a YouTube tab
-  if (previousTabId) {
-    await pauseVideoOnTab(previousTabId);
-  }
-
-  // Play video on the current tab if it's a YouTube tab
-  await playVideoOnTab(currentTabId);
-
-  // Update the previous tab ID
-  previousTabId = currentTabId;
+    const currentTabId = activeInfo.tabId;
+    
+    if (previousTabId !== null) { // ✅ Check if previousTabId exists
+        await pauseVideoOnTab(previousTabId);
+    }
+    
+    await playVideoOnTab(currentTabId);
+    previousTabId = currentTabId; // ✅ Update previousTabId
 });
 
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  // Handle updates for the currently active tab
-  if (tabId === previousTabId && changeInfo.url && tab.url.includes("youtube.com")) {
-    await playVideoOnTab(tabId);
-  }
-});
 
+// Function to pause video
 async function pauseVideoOnTab(tabId) {
-  try {
-    await chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      func: () => {
-        const video = document.querySelector("video");
-        if (video && !video.paused) {
-          video.pause();
-        }
-      },
-    });
-  } catch (error) {
-    console.error(`Error pausing video on tab ${tabId}:`, error);
-  }
+    try {
+        await chrome.scripting.executeScript({
+            target: { tabId },
+            func: () => {
+                const video = document.querySelector("video");
+                if (video) video.pause();
+            }
+        });
+    } catch (error) {
+        console.error(`Error pausing video on tab ${tabId}:`, error);
+    }
 }
 
+// Function to play video
 async function playVideoOnTab(tabId) {
-  try {
-    await chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      func: () => {
-        const video = document.querySelector("video");
-        if (video && video.paused) {
-          video.play();
-        }
-      },
-    });
-  } catch (error) {
-    console.error(`Error playing video on tab ${tabId}:`, error);
-  }
+    try {
+        await chrome.scripting.executeScript({
+            target: { tabId },
+            func: () => {
+                const video = document.querySelector("video");
+                if (video) video.play();
+            }
+        });
+    } catch (error) {
+        console.error(`Error playing video on tab ${tabId}:`, error);
+    }
 }
